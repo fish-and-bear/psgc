@@ -139,7 +139,8 @@ function setMap(s){M.removeLayer(tile);tile=L.tileLayer(TILES[s],{maxZoom:20}).a
 function debounce(fn,ms){let t;return function(){clearTimeout(t);t=setTimeout(()=>fn.apply(this,arguments),ms)}}
 
 document.addEventListener('DOMContentLoaded',()=>{
-  M=L.map('map',{zoomControl:true,minZoom:5,maxBounds:[[2,112],[23,132]],maxBoundsViscosity:.8}).setView([12,122],6);
+  M=L.map('map',{zoomControl:false,minZoom:5,maxBounds:[[2,112],[23,132]],maxBoundsViscosity:.8}).setView([12,122],6);
+  L.control.zoom({position:'bottomright'}).addTo(M);
   tile=L.tileLayer(TILES.dark,{maxZoom:20}).addTo(M);
   document.documentElement.classList.add('dark-tiles');
 
