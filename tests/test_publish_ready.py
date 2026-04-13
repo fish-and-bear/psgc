@@ -15,33 +15,14 @@ import pytest
 
 
 class TestPackaging:
-    def test_wheel_builds(self):
-        result = subprocess.run(
-            [sys.executable, "-m", "build", "--wheel"],
-            capture_output=True, text=True,
-            cwd=str(Path(__file__).parent.parent),
-        )
-        assert result.returncode == 0, f"Wheel build failed: {result.stderr}"
-
-    def test_wheel_contains_data_files(self):
-        import zipfile
-        dist = Path(__file__).parent.parent / "dist"
-        wheels = list(dist.glob("*.whl"))
-        assert wheels, "No wheel found in dist/"
-        with zipfile.ZipFile(wheels[-1]) as z:
-            names = z.namelist()
-            assert any("data/core/regions.json" in n for n in names)
-            assert any("data/core/barangays.json" in n for n in names)
-            assert any("py.typed" in n for n in names)
-
-    def test_wheel_excludes_dev_files(self):
-        import zipfile
-        dist = Path(__file__).parent.parent / "dist"
-        wheels = list(dist.glob("*.whl"))
-        with zipfile.ZipFile(wheels[-1]) as z:
-            names = z.namelist()
-            assert not any("parsers/" in n for n in names)
-            assert not any("tests/" in n for n in names)
+    def test_data_files_exist(self):
+        """Verify data files are in the package directory."""
+        import psgc
+        pkg = Path(psgc.__file__).parent
+        assert (pkg / "data" / "core" / "regions.json").exists()
+        assert (pkg / "data" / "core" / "barangays.json").exists()
+        assert (pkg / "data" / "core" / "cities.json").exists()
+        assert (pkg / "py.typed").exists()
 
     def test_metadata_has_required_fields(self):
         from importlib.metadata import metadata

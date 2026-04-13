@@ -239,7 +239,12 @@ class DemoHandler(http.server.BaseHTTPRequestHandler):
                     if pct >= 1:
                         sentences.append(f"Its population of {place.population:,} accounts for {pct:.1f}% of {city.name}.")
 
-            result["breadcrumb"] = [reg.name, prov.name, city.name, place.name]
+            result["breadcrumb"] = [
+                {"name": reg.name, "code": reg.psgc_code},
+                {"name": prov.name, "code": prov.psgc_code},
+                {"name": city.name, "code": city.psgc_code},
+                {"name": place.name, "code": place.psgc_code},
+            ]
             result["parent_name"] = city.name
             result["urban_rural"] = place.urban_rural
             result["island_group"] = reg.island_group.value if reg.island_group else None
@@ -266,7 +271,13 @@ class DemoHandler(http.server.BaseHTTPRequestHandler):
                 sentences.append(f"It is classified as a {place.income_classification} income municipality/city.")
 
             subs = place.sub_municipalities
-            result["breadcrumb"] = place.breadcrumb
+            bc = [{"name": reg.name, "code": reg.psgc_code},
+                  {"name": prov.name, "code": prov.psgc_code},
+                  {"name": place.name, "code": place.psgc_code}]
+            if prov.name == reg.name:
+                bc = [{"name": reg.name, "code": reg.psgc_code},
+                      {"name": place.name, "code": place.psgc_code}]
+            result["breadcrumb"] = bc
             result["parent_name"] = prov.name
             result["island_group"] = reg.island_group.value if reg.island_group else None
             result["income_classification"] = place.income_classification
@@ -283,7 +294,10 @@ class DemoHandler(http.server.BaseHTTPRequestHandler):
                 sentences.append(f"It has {len(cities)} cities and municipalities.")
             if place.population:
                 sentences.append(f"Its population is {place.population:,}.")
-            result["breadcrumb"] = place.breadcrumb
+            result["breadcrumb"] = [
+                {"name": reg.name, "code": reg.psgc_code},
+                {"name": place.name, "code": place.psgc_code},
+            ]
             result["parent_name"] = reg.name
             result["island_group"] = reg.island_group.value if reg.island_group else None
             result["income_classification"] = place.income_classification
@@ -299,7 +313,7 @@ class DemoHandler(http.server.BaseHTTPRequestHandler):
                 total_pop = sum(r.population or 0 for r in store.regions)
                 pct = place.population / total_pop * 100 if total_pop else 0
                 sentences.append(f"Its population of {place.population:,} accounts for {pct:.1f}% of the national total.")
-            result["breadcrumb"] = [place.name]
+            result["breadcrumb"] = [{"name": place.name, "code": place.psgc_code}]
             result["island_group"] = place.island_group.value if place.island_group else None
             result["children_count"] = len(provs)
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>psgc — Explore the Philippines</title>
+<title>psgc</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -12,306 +12,248 @@
 body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:#0a0f0d;color:#e8e4df;height:100vh;overflow:hidden}
 ::selection{background:#2d6a4f;color:#fff}
 
-/* fullscreen map */
 #map{position:fixed;inset:0;z-index:0}
 .leaflet-control-zoom{margin:16px!important}
-.leaflet-control-zoom a{background:rgba(10,15,13,.85)!important;color:#a8b4a0!important;border:1px solid rgba(255,255,255,.08)!important;backdrop-filter:blur(12px)}
+.leaflet-control-zoom a{background:rgba(10,15,13,.85)!important;color:#a8b4a0!important;border:1px solid rgba(255,255,255,.06)!important;backdrop-filter:blur(12px)}
+html.dark-tiles .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(1.15) saturate(.7)}
 
-/* glass panel */
-.panel{
-  position:fixed;top:16px;left:16px;bottom:16px;width:400px;z-index:1000;
-  background:rgba(10,15,13,.78);backdrop-filter:blur(24px) saturate(1.4);
+/* the floating card */
+.float{
+  position:fixed;top:16px;left:16px;width:400px;max-height:calc(100vh - 32px);z-index:1000;
+  background:rgba(10,15,13,.82);backdrop-filter:blur(28px) saturate(1.3);
   border:1px solid rgba(255,255,255,.06);border-radius:20px;
   display:flex;flex-direction:column;overflow:hidden;
-  box-shadow:0 8px 40px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04);
+  box-shadow:0 8px 40px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.03);
+  transition:box-shadow .3s;
 }
+.float:hover{box-shadow:0 12px 48px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.04)}
 
-/* header */
-.p-head{padding:20px 20px 0;flex-shrink:0}
-.brand{display:flex;align-items:center;gap:10px;margin-bottom:18px}
-.brand-icon{width:32px;height:32px;border-radius:10px;background:linear-gradient(135deg,#2d6a4f,#52b788);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;box-shadow:0 2px 8px rgba(45,106,79,.4)}
-.brand h1{font-size:15px;font-weight:700;color:#e8e4df;flex:1}
-.brand-sub{font-size:10px;color:rgba(255,255,255,.3);margin-top:1px}
-.ctrls{display:flex;gap:4px}
-.ctrl{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:0;width:30px;height:30px;cursor:pointer;color:rgba(255,255,255,.5);font-size:12px;display:flex;align-items:center;justify-content:center;transition:.15s}
-.ctrl:hover{background:rgba(255,255,255,.1);color:#fff}
-.ctrl select{position:absolute;opacity:0;width:100%;height:100%;cursor:pointer;top:0;left:0}
-.ctrl-wrap{position:relative;overflow:hidden}
+.brand{padding:18px 20px 0;display:flex;align-items:center;gap:10px}
+.brand-dot{width:8px;height:8px;border-radius:50%;background:#52b788;box-shadow:0 0 8px #52b78860}
+.brand h1{font-size:14px;font-weight:700;letter-spacing:-.2px;flex:1}
+.brand small{font-size:10px;color:rgba(255,255,255,.2);font-family:'JetBrains Mono',monospace}
 
-/* search */
-.search{position:relative;margin-bottom:14px}
+.search{padding:14px 20px;position:relative}
 .search input{
-  width:100%;padding:13px 16px 13px 44px;
-  background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.08);
-  border-radius:14px;color:#e8e4df;font-size:14px;font-family:inherit;
-  outline:none;transition:.2s;
+  width:100%;padding:12px 16px 12px 40px;
+  background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.07);
+  border-radius:14px;color:#e8e4df;font-size:14px;font-family:inherit;outline:none;
+  transition:.2s;
 }
-.search input:focus{background:rgba(255,255,255,.1);border-color:rgba(82,183,136,.5);box-shadow:0 0 0 3px rgba(82,183,136,.1)}
-.search input::placeholder{color:rgba(255,255,255,.25)}
-.search-icon{position:absolute;left:15px;top:50%;transform:translateY(-50%);opacity:.3}
+.search input:focus{background:rgba(255,255,255,.08);border-color:rgba(82,183,136,.4);box-shadow:0 0 0 3px rgba(82,183,136,.08)}
+.search input::placeholder{color:rgba(255,255,255,.2)}
+.search svg{position:absolute;left:34px;top:50%;transform:translateY(-50%);opacity:.25}
 
-/* tabs */
-.tabs{display:flex;gap:2px;margin-bottom:2px}
-.tab{flex:1;padding:8px;font-size:11px;font-weight:600;text-align:center;cursor:pointer;color:rgba(255,255,255,.3);border-radius:10px;transition:.15s;letter-spacing:.3px}
-.tab:hover{color:rgba(255,255,255,.5);background:rgba(255,255,255,.04)}
-.tab.on{color:#52b788;background:rgba(82,183,136,.1)}
+.body{flex:1;overflow-y:auto;padding:0 20px 20px}
+.body::-webkit-scrollbar{width:3px}.body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
 
-/* scroll area */
-.p-body{flex:1;overflow-y:auto;padding:14px 20px 20px}
-.p-body::-webkit-scrollbar{width:3px}.p-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
-.pane{display:none}.pane.on{display:block}
+/* empty state */
+.welcome{padding:40px 16px;text-align:center}
+.welcome .flag{font-size:40px;margin-bottom:12px}
+.welcome h2{font-size:16px;font-weight:700;color:rgba(255,255,255,.7);margin-bottom:6px}
+.welcome p{font-size:12px;color:rgba(255,255,255,.15);line-height:1.7}
 
-/* cards */
+/* results */
 .card{
-  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);
-  border-radius:14px;padding:14px 16px;margin-bottom:8px;cursor:pointer;transition:.2s;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);
+  border-radius:14px;padding:12px 16px;margin-bottom:6px;cursor:pointer;transition:.15s;
 }
-.card:hover{background:rgba(82,183,136,.08);border-color:rgba(82,183,136,.2);transform:translateY(-1px)}
-.card-top{border-color:rgba(82,183,136,.25);background:rgba(82,183,136,.06)}
-.card .nm{font-weight:600;font-size:14px;display:flex;align-items:center;gap:8px;color:#e8e4df}
-.card .sub{font-size:11px;color:rgba(255,255,255,.25);margin-top:4px;font-family:'JetBrains Mono',monospace}
-.badge{padding:2px 7px;border-radius:6px;font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.3px}
-.b-reg{background:rgba(82,183,136,.15);color:#52b788}
-.b-prov{background:rgba(96,165,250,.15);color:#60a5fa}
-.b-city{background:rgba(251,191,36,.15);color:#fbbf24}
-.b-bgy{background:rgba(251,113,133,.15);color:#fb7185}
+.card:hover{background:rgba(82,183,136,.06);border-color:rgba(82,183,136,.15)}
+.card .nm{font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px}
+.card .sub{font-size:10px;color:rgba(255,255,255,.2);margin-top:3px;font-family:'JetBrains Mono',monospace}
+.card-top{border-color:rgba(82,183,136,.2)}
+.badge{padding:2px 6px;border-radius:5px;font-size:8px;font-weight:700;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.3px}
+.b-reg{background:rgba(82,183,136,.12);color:#52b788}.b-prov{background:rgba(96,165,250,.12);color:#60a5fa}.b-city{background:rgba(251,191,36,.12);color:#fbbf24}.b-bgy{background:rgba(251,113,133,.12);color:#fb7185}
+.pop{margin-left:auto;font-size:10px;color:rgba(255,255,255,.15);font-family:'JetBrains Mono',monospace}
 
-/* detail panel */
-.dtl{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;overflow:hidden;margin-bottom:12px}
-.dtl-h{padding:14px 18px;font-weight:700;font-size:14px;border-bottom:1px solid rgba(255,255,255,.06);color:#e8e4df;display:flex;align-items:center;gap:8px}
-.dtl-r{display:flex;justify-content:space-between;align-items:center;padding:9px 18px;font-size:13px;border-bottom:1px solid rgba(255,255,255,.04)}
+/* profile / detail */
+.profile{animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.back{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:rgba(255,255,255,.3);cursor:pointer;padding:4px 0;margin-bottom:8px}
+.back:hover{color:rgba(255,255,255,.5)}
+.crumb{font-size:10px;color:rgba(255,255,255,.15);margin-bottom:10px;line-height:1.6}.crumb b{color:#52b788;font-weight:500}
+.place-name{font-size:18px;font-weight:800;color:#e8e4df;margin-bottom:2px}
+.place-pop{font-size:24px;font-weight:800;color:#52b788;letter-spacing:-.5px}
+.place-pop-label{font-size:10px;color:rgba(255,255,255,.15);margin-bottom:14px}
+.desc{font-size:12.5px;color:rgba(255,255,255,.35);line-height:1.7;margin-bottom:14px;padding:12px 14px;background:rgba(255,255,255,.02);border-radius:10px;border:1px solid rgba(255,255,255,.04)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
+.g{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.04);border-radius:10px;padding:10px 12px}
+.g .gv{font-size:13px;font-weight:700;color:#e8e4df}.g .gl{font-size:9px;color:rgba(255,255,255,.2);text-transform:uppercase;letter-spacing:.5px;margin-top:1px}
+
+.dtl{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.04);border-radius:10px;overflow:hidden;margin-bottom:10px}
+.dtl-h{padding:10px 14px;font-weight:600;font-size:12px;border-bottom:1px solid rgba(255,255,255,.04);color:rgba(255,255,255,.4)}
+.dtl-r{display:flex;justify-content:space-between;align-items:center;padding:7px 14px;font-size:12px;border-bottom:1px solid rgba(255,255,255,.03)}
 .dtl-r:last-child{border:none}
-.dtl-r .k{color:rgba(255,255,255,.3);font-size:12px;font-weight:500}
-.dtl-r .v{font-family:'JetBrains Mono',monospace;font-size:12px;color:rgba(255,255,255,.7)}
-.crumb{font-size:11px;color:rgba(255,255,255,.25);margin-bottom:8px;line-height:1.6}
-.crumb b{color:#52b788;font-weight:600}
+.dtl-r .k{color:rgba(255,255,255,.2)}.dtl-r .v{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,.5)}
 
-/* forms */
-.fg{margin-bottom:14px}
-.fg label{display:block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.2);margin-bottom:6px}
-.fg select,.fg input{width:100%;padding:10px 14px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:10px;font-size:13px;font-family:inherit;color:#e8e4df;outline:none;transition:.2s}
-.fg select:focus,.fg input:focus{border-color:rgba(82,183,136,.5);box-shadow:0 0 0 3px rgba(82,183,136,.1)}
-.fg select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;cursor:pointer}
-.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.btn{padding:11px;background:linear-gradient(135deg,#2d6a4f,#40916c);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;width:100%;margin:4px 0 14px;transition:.15s;box-shadow:0 4px 12px rgba(45,106,79,.3)}
-.btn:hover{box-shadow:0 6px 20px rgba(45,106,79,.4);transform:translateY(-1px)}
+.loading{padding:32px;text-align:center;color:rgba(255,255,255,.15);font-size:12px}
 
-/* stats */
-.hero{text-align:center;padding:20px 0 24px}
-.hero-flag{font-size:56px;margin-bottom:6px}
-.hero h2{font-size:20px;font-weight:800;color:#e8e4df;margin-bottom:4px}
-.hero p{color:rgba(255,255,255,.3);font-size:12px}
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px}
-.stat{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:16px;text-align:center}
-.stat .n{font-size:24px;font-weight:800;color:#52b788}.stat .l{font-size:9px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.8px;font-weight:600;margin-top:2px}
+/* map controls */
+.map-ctrls{position:fixed;top:16px;right:56px;z-index:1000;display:flex;gap:4px}
+.mc{background:rgba(10,15,13,.82);backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,.06);border-radius:8px;padding:5px 10px;font-size:10px;font-weight:600;color:rgba(255,255,255,.4);cursor:pointer;font-family:inherit;transition:.15s;appearance:none}
+.mc:hover{color:rgba(255,255,255,.6);border-color:rgba(255,255,255,.1)}
+.mc select{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.mc-wrap{position:relative}
 
-.code{background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:16px;font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,.4);line-height:2;white-space:pre;overflow-x:auto;margin-bottom:16px}
-.code em{color:#52b788;font-style:normal}
-.code .cm{color:rgba(255,255,255,.15)}
-
-.dist-num{font-size:42px;font-weight:800;color:#52b788;text-align:center;padding:20px 0 4px;letter-spacing:-2px}
-.dist-sub{text-align:center;font-size:12px;color:rgba(255,255,255,.25);margin-bottom:4px}
-.note{text-align:center;font-size:11px;color:rgba(255,255,255,.15);padding:2px 0}
-.bar-bg{height:4px;background:rgba(255,255,255,.06);border-radius:2px;margin-top:6px;overflow:hidden}.bar-fg{height:100%;border-radius:2px;transition:width .4s}
-
-.empty{padding:48px 20px;text-align:center;color:rgba(255,255,255,.2);font-size:13px;line-height:1.8}
-.empty-big{font-size:40px;margin-bottom:16px}
-
-/* popups */
-.leaflet-popup-content-wrapper{background:rgba(10,15,13,.9)!important;backdrop-filter:blur(16px)!important;color:#e8e4df!important;border-radius:12px!important;border:1px solid rgba(255,255,255,.08)!important;box-shadow:0 8px 32px rgba(0,0,0,.5)!important}
+.leaflet-popup-content-wrapper{background:rgba(10,15,13,.9)!important;backdrop-filter:blur(16px)!important;color:#e8e4df!important;border-radius:10px!important;border:1px solid rgba(255,255,255,.06)!important;box-shadow:0 4px 20px rgba(0,0,0,.4)!important}
 .leaflet-popup-tip{background:rgba(10,15,13,.9)!important}
-.leaflet-popup-content{font-family:'Plus Jakarta Sans',system-ui!important;font-size:13px!important;margin:10px 14px!important;line-height:1.5!important}
+.leaflet-popup-content{font-family:'Plus Jakarta Sans',system-ui!important;font-size:12px!important;margin:8px 12px!important;line-height:1.5!important}
 .leaflet-popup-content b{color:#52b788}
 
-@media(max-width:900px){.panel{width:calc(100% - 32px);height:50vh;top:auto;bottom:16px;left:16px;right:16px}}
+@media(max-width:800px){.float{width:calc(100% - 32px);max-height:50vh;top:auto;bottom:16px}.map-ctrls{top:auto;bottom:calc(50vh + 24px)}}
 </style>
 </head>
 <body>
 
 <div id="map"></div>
 
-<div class="panel">
-  <div class="p-head">
-    <div class="brand">
-      <div class="brand-icon">PH</div>
-      <div><h1>psgc</h1><div class="brand-sub" id="ver">42,011 barangays</div></div>
-      <div class="ctrls">
-        <div class="ctrl ctrl-wrap"><span>🗺</span><select id="map-style" onchange="setMapStyle(this.value)"><option value="roadmap">Road</option><option value="satellite">Satellite</option><option value="terrain">Terrain</option><option value="dark" selected>Dark</option></select></div>
-      </div>
-    </div>
-    <div class="search"><svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><input id="q" placeholder="Where in the Philippines?" autofocus></div>
-    <div class="tabs">
-      <div class="tab on" data-p="results">Discover</div>
-      <div class="tab" data-p="browse">Browse</div>
-      <div class="tab" data-p="tools">Tools</div>
-      <div class="tab" data-p="about">About</div>
-    </div>
+<div class="map-ctrls">
+  <div class="mc mc-wrap">🗺<select id="map-style" onchange="setMap(this.value)"><option value="dark" selected>Dark</option><option value="road">Road</option><option value="sat">Satellite</option></select></div>
+</div>
+
+<div class="float">
+  <div class="brand"><div class="brand-dot"></div><h1>psgc</h1><small id="ver"></small></div>
+  <div class="search">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="q" placeholder="Where in the Philippines?" autofocus>
   </div>
-  <div class="p-body">
-    <div class="pane on" id="p-results">
-      <div class="empty"><div class="empty-big">🏕️</div>7,641 islands. 18 regions.<br>112 million people call this home.<br><br><span style="color:rgba(255,255,255,.35)">Start typing to discover.</span></div>
-    </div>
-    <div class="pane" id="p-browse">
-      <div class="fg"><label>Region</label><select id="br-reg"><option value="">Pick a region...</option></select></div>
-      <div class="fg"><label>Province</label><select id="br-prov" disabled><option value="">Pick a province...</option></select></div>
-      <div class="fg"><label>City / Municipality</label><select id="br-city" disabled><option value="">Pick a city...</option></select></div>
-      <div class="fg"><label>Barangay</label><select id="br-bgy" disabled><option value="">Pick a barangay...</option></select></div>
-      <div id="browse-detail"></div>
-    </div>
-    <div class="pane" id="p-tools">
-      <div class="dtl"><div class="dtl-h">📍 Reverse Geocode</div><div style="padding:14px 18px"><div class="row2" style="margin-bottom:10px"><div class="fg" style="margin:0"><label>Lat</label><input id="tl-lat" value="14.5995"></div><div class="fg" style="margin:0"><label>Lng</label><input id="tl-lng" value="120.9842"></div></div><button class="btn" onclick="doReverse()">Find barangay</button><div class="note">or click anywhere on the map</div><div id="rev-out"></div></div></div>
-      <div class="dtl"><div class="dtl-h">📏 Distance</div><div style="padding:14px 18px"><div class="fg"><label>From</label><input id="tl-da" placeholder="City of Mandaluyong"></div><div class="fg"><label>To</label><input id="tl-db" placeholder="City of Cebu"></div><button class="btn" onclick="doDist()">Calculate</button><div id="dist-out"></div></div></div>
-      <div class="dtl"><div class="dtl-h">📝 Parse Address</div><div style="padding:14px 18px"><div class="fg"><label>Address</label><input id="tl-addr" placeholder="Brgy. San Antonio, Makati City"></div><button class="btn" onclick="doAddr()">Parse</button><div id="addr-out"></div></div></div>
-    </div>
-    <div class="pane" id="p-about">
-      <div class="hero"><div class="hero-flag">🇵🇭</div><h2>psgc explorer</h2><p id="about-sub"></p></div>
-      <div class="stats-grid" id="stat-row"></div>
-      <div class="code" id="code-block"></div>
-      <div class="note">Community project · Not affiliated with PSA</div>
-      <div class="note" style="margin-top:2px">Data: PSA PSGC Q4 2025 · 2024 Census</div>
+  <div class="body" id="out">
+    <div class="welcome">
+      <div class="flag">🇵🇭</div>
+      <h2>Explore the Philippines</h2>
+      <p>42,011 barangays. 1,656 cities.<br>18 regions. 112 million people.<br><br>Type any place to begin.</p>
     </div>
   </div>
 </div>
 
 <script>
-let M,mk=[],ln=[],tileLayer;
+let M,mk=[],ln=[],tile,hist=[];
 const A='',E=s=>{const d=document.createElement('div');d.textContent=s||'';return d.innerHTML};
-const TILES={roadmap:'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',satellite:'https://mt1.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',terrain:'https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',dark:'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}'};
+const TILES={dark:'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',road:'https://mt1.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',sat:'https://mt1.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}'};
 function cl(){mk.forEach(m=>M.removeLayer(m));mk=[];ln.forEach(l=>M.removeLayer(l));ln=[]}
-function pin(lt,lg,lb,co='#52b788',sz=7){const m=L.circleMarker([lt,lg],{radius:sz,fillColor:co,color:'#fff',weight:2,fillOpacity:.85}).addTo(M);m.bindPopup(`<b>${E(lb)}</b><br><span style="opacity:.5">${lt.toFixed(4)}, ${lg.toFixed(4)}</span>`);mk.push(m);return m}
+function pin(lt,lg,lb,co='#52b788',sz=7){const m=L.circleMarker([lt,lg],{radius:sz,fillColor:co,color:'#fff',weight:1.5,fillOpacity:.85}).addTo(M);m.bindPopup(`<b>${E(lb)}</b><br><span style="opacity:.4">${lt.toFixed(4)}, ${lg.toFixed(4)}</span>`);mk.push(m);return m}
 function bc(l){return{region:'b-reg',province:'b-prov',city:'b-city',barangay:'b-bgy',municipality:'b-city'}[l]||'b-bgy'}
 function mc(l){return{region:'#52b788',province:'#60a5fa',city:'#fbbf24',barangay:'#fb7185'}[l]||'#fb7185'}
-function setMapStyle(s){M.removeLayer(tileLayer);tileLayer=L.tileLayer(TILES[s],{maxZoom:20}).addTo(M);document.documentElement.classList.toggle('dark-tiles',s==='dark');localStorage.setItem('psgc-map',s)}
-function go(p){document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.p===p));document.querySelectorAll('.pane').forEach(x=>x.classList.toggle('on',x.id===`p-${p}`))}
-function debounce(fn,ms){let t;return e=>{clearTimeout(t);t=setTimeout(()=>fn(e),ms)}}
+function fP(n){if(!n)return'';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return Math.round(n/1e3)+'K';return n}
+function setMap(s){M.removeLayer(tile);tile=L.tileLayer(TILES[s],{maxZoom:20}).addTo(M);document.documentElement.classList.toggle('dark-tiles',s==='dark')}
+function debounce(fn,ms){let t;return function(){clearTimeout(t);t=setTimeout(()=>fn.apply(this,arguments),ms)}}
 
 document.addEventListener('DOMContentLoaded',()=>{
-  let sm=localStorage.getItem('psgc-map')||'dark';if(!TILES[sm])sm='dark';document.getElementById('map-style').value=sm;
-  M=L.map('map',{zoomControl:true,zoomAnimation:true,minZoom:5,maxBounds:[[2,112],[23,132]],maxBoundsViscosity:0.8}).setView([12.3,122.5],6);
-  tileLayer=L.tileLayer(TILES[sm],{maxZoom:20}).addTo(M);
-  document.documentElement.classList.toggle('dark-tiles',sm==='dark');
-  M.on('click',e=>{document.getElementById('tl-lat').value=e.latlng.lat.toFixed(4);document.getElementById('tl-lng').value=e.latlng.lng.toFixed(4);go('tools');doReverse()});
+  M=L.map('map',{zoomControl:true,minZoom:5,maxBounds:[[2,112],[23,132]],maxBoundsViscosity:.8}).setView([12,122],6);
+  tile=L.tileLayer(TILES.dark,{maxZoom:20}).addTo(M);
+  document.documentElement.classList.add('dark-tiles');
 
-  fetch(`${A}/api/stats`).then(r=>r.json()).then(d=>{
-    document.getElementById('ver').textContent=`v${d.version} \u00b7 ${d.barangays.toLocaleString()} barangays`;
-    document.getElementById('about-sub').textContent=`v${d.version} \u00b7 PSGC ${d.data_date}`;
-    document.getElementById('stat-row').innerHTML=['\ud83c\udfe8',d.barangays,'Barangays','\ud83c\udfd9\ufe0f',d.cities,'Cities','\ud83d\uddfa\ufe0f',d.provinces,'Provinces','\ud83c\udf0f',d.regions,'Regions'].reduce((a,v,i)=>i%3===0?[...a,[v]]:(a[a.length-1].push(v),a),[]).map(([i,n,l])=>`<div class="stat"><div class="n">${n.toLocaleString()}</div><div class="l">${l}</div></div>`).join('');
-    document.getElementById('code-block').innerHTML=`<em>import</em> psgc\n\nplace = psgc.get(<em>"Taguig"</em>)\nplace.population      <span class="cm"># 1,308,085</span>\nplace.children        <span class="cm"># 38 barangays</span>\n\nmanila = psgc.get(<em>"Manila"</em>)\nmanila.sub_municipalities  <span class="cm"># Tondo, Sampaloc...</span>\nmanila.children            <span class="cm"># 897 barangays</span>\n\npsgc.search(<em>"Cebu"</em>, n=5)\npsgc.nearest(14.5, 120.9)\npsgc.distance(<em>"Manila"</em>, <em>"Cebu"</em>)`;
+  M.on('click',async e=>{
+    const lat=e.latlng.lat.toFixed(4),lng=e.latlng.lng.toFixed(4);
+    cl();pin(+lat,+lng,'📍','#fbbf24',8);
+    const r=await fetch(`${A}/api/reverse?lat=${lat}&lng=${lng}`);const d=await r.json();
+    if(d.barangay_code)showProfile(d.barangay_code);
   });
 
-  fetch(`${A}/api/regions`).then(r=>r.json()).then(regs=>{
-    const sel=document.getElementById('br-reg');regs.sort((a,b)=>a.name.localeCompare(b.name));
-    regs.forEach(r=>{const o=document.createElement('option');o.value=r.psgc_code;o.textContent=r.name;sel.appendChild(o)});
-    regs.forEach(r=>{if(r.latitude)pin(r.latitude,r.longitude,r.name,'#52b788',4)});
-  });
+  fetch(`${A}/api/stats`).then(r=>r.json()).then(d=>{document.getElementById('ver').textContent=`v${d.version}`});
+  fetch(`${A}/api/regions`).then(r=>r.json()).then(regs=>{regs.forEach(r=>{if(r.latitude)pin(r.latitude,r.longitude,r.name,'#52b788',3)})});
 
-  document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>go(t.dataset.p)));
-  const qInput=document.getElementById('q');
-  qInput.addEventListener('input',debounce(e=>doSearch(e.target.value),200));
-  qInput.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();doSearchEnter()}});
-  qInput.addEventListener('focus',()=>go('results'));
-  ['br-reg','br-prov','br-city','br-bgy'].forEach((id,i)=>document.getElementById(id).addEventListener('change',[onRegion,onProvince,onCity,onBarangay][i]));
+  const q=document.getElementById('q');
+  q.addEventListener('input',debounce(()=>doSearch(q.value),200));
+  q.addEventListener('keydown',e=>{if(e.key==='Enter'&&lastResults.length){e.preventDefault();showProfile(lastResults[0].psgc_code)}});
+  q.addEventListener('focus',()=>{if(lastResults.length)renderResults()});
 });
 
-let lastResults=[];
-let lastQuery='';
-
-function fmtPop(n){if(!n)return'';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1e3)return(n/1e3).toFixed(0)+'K';return String(n)}
+let lastResults=[],lastQuery='';
 
 async function doSearch(q){
   lastQuery=q;
-  if(!q||q.length<2){document.getElementById('p-results').innerHTML='<div class="empty"><div class="empty-big">\ud83c\udfd5\ufe0f</div>7,641 islands. 18 regions.<br>112 million people call this home.<br><br><span style="color:rgba(255,255,255,.35)">Start typing to discover.</span></div>';lastResults=[];return}
-  go('results');
-  document.getElementById('p-results').innerHTML='<div class="empty" style="padding:24px"><span style="opacity:.3">Searching...</span></div>';
-  const r=await fetch(`${A}/api/search?q=${encodeURIComponent(q)}&n=12&threshold=55`);const data=await r.json();cl();lastResults=data;
-  if(!data.length){document.getElementById('p-results').innerHTML=`<div class="empty">Nothing found for "${E(q)}"</div>`;return}
-  const bds=[];let h='';
-  data.forEach((d,i)=>{
-    const pop=fmtPop(d.population);
-    h+=`<div class="card${i===0?' card-top':''}" onclick="detail('${d.psgc_code}')">
-      <div class="nm">${E(d.name)}<span class="badge ${bc(d.level)}">${d.level}</span>${pop?`<span style="margin-left:auto;font-size:11px;color:rgba(255,255,255,.25);font-family:'JetBrains Mono',monospace">${pop}</span>`:''}</div>
-      <div class="sub">${d.psgc_code}</div>
-    </div>`;
-    if(d.latitude){pin(d.latitude,d.longitude,d.name,mc(d.level),i===0?8:5);bds.push([d.latitude,d.longitude])}
-  });
-  document.getElementById('p-results').innerHTML=h;
+  if(!q||q.length<2){document.getElementById('out').innerHTML=`<div class="welcome"><div class="flag">🇵🇭</div><h2>Explore the Philippines</h2><p>42,011 barangays. 1,656 cities.<br>18 regions. 112 million people.<br><br>Type any place to begin.</p></div>`;lastResults=[];return}
+  document.getElementById('out').innerHTML='<div class="loading">Searching...</div>';
+  const r=await fetch(`${A}/api/search?q=${encodeURIComponent(q)}&n=10&threshold=55`);
+  lastResults=await r.json();cl();
+  if(!lastResults.length){document.getElementById('out').innerHTML=`<div class="loading">Nothing found</div>`;return}
+  renderResults();
+  const bds=[];lastResults.forEach((d,i)=>{if(d.latitude){pin(d.latitude,d.longitude,d.name,mc(d.level),i===0?7:4);bds.push([d.latitude,d.longitude])}});
   if(bds.length>1)M.fitBounds(bds,{padding:[30,30],maxZoom:12});else if(bds.length)M.flyTo(bds[0],12);
 }
 
-function doSearchEnter(){
-  if(lastResults.length)detail(lastResults[0].psgc_code);
-  else if(lastQuery)doSearch(lastQuery);
+function renderResults(){
+  let h='';
+  lastResults.forEach((d,i)=>{
+    const p=fP(d.population);
+    h+=`<div class="card${i===0?' card-top':''}" onclick="showProfile('${d.psgc_code}')"><div class="nm">${E(d.name)}<span class="badge ${bc(d.level)}">${d.level}</span>${p?`<span class="pop">${p}</span>`:''}</div><div class="sub">${d.psgc_code}</div></div>`;
+  });
+  document.getElementById('out').innerHTML=h;
 }
 
-let detailHistory=[];
-
-async function detail(code){
-  go('results');
-  document.getElementById('p-results').innerHTML='<div class="empty" style="padding:24px"><span style="opacity:.3">Loading...</span></div>';
-  
-  const rp=await fetch(`${A}/api/profile?code=${code}`);const prof=await rp.json();
-  
-  if(!prof.ok){
-    const r=await fetch(`${A}/api/get?q=${code}`);const d=await r.json();
-    if(!d.ok){if(d.error==='ambiguous'){let h='<div class="dtl"><div class="dtl-h">Which one?</div>';d.matches.forEach(m=>{h+=`<div class="card" onclick="detail('${m.psgc_code}')"><div class="nm">${E(m.name)}</div><div class="sub">${m.parent||''} \u00b7 ${m.psgc_code}</div></div>`});h+='</div>';document.getElementById('p-results').innerHTML=h}}
+async function showProfile(code){
+  document.getElementById('out').innerHTML='<div class="loading">Loading...</div>';
+  const r=await fetch(`${A}/api/profile?code=${code}`);const p=await r.json();
+  if(!p.ok){
+    const r2=await fetch(`${A}/api/get?q=${code}`);const d=await r2.json();
+    if(d.error==='ambiguous'){
+      let h='';d.matches.forEach(m=>{h+=`<div class="card" onclick="showProfile('${m.psgc_code}')"><div class="nm">${E(m.name)}</div><div class="sub">${m.parent||''}</div></div>`});
+      document.getElementById('out').innerHTML=h;
+    }
     return;
   }
+  hist.push(code);cl();
+  if(p.coordinate)pin(p.coordinate.latitude,p.coordinate.longitude,p.name,'#52b788',9).openPopup();
 
-  detailHistory.push(code);
-  const p=prof;cl();let h='';
+  let h='<div class="profile">';
 
-  if(detailHistory.length>1||lastQuery)
-    h+=`<div class="card" onclick="goBack()" style="margin-bottom:10px;padding:8px 14px;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600"><span style="opacity:.4">\u2190</span> Back</div>`;
+  // back
+  if(hist.length>1||lastQuery)h+=`<div class="back" onclick="goBack()">← back</div>`;
 
-  if(p.breadcrumb)h+=`<div class="crumb">${p.breadcrumb.map(b=>`<b>${E(b)}</b>`).join(' \u2192 ')}</div>`;
+  // breadcrumb (clickable)
+  if(p.breadcrumb&&p.breadcrumb.length>1)h+=`<div class="crumb">${p.breadcrumb.map((b,i)=>i<p.breadcrumb.length-1?`<b onclick="showProfile('${b.code}')">${E(b.name)}</b>`:`<b style="color:rgba(255,255,255,.5);cursor:default">${E(b.name)}</b>`).join(' → ')}</div>`;
 
-  h+=`<div style="margin-bottom:14px">`;
-  h+=`<div style="font-size:20px;font-weight:800;color:#e8e4df;margin-bottom:4px">${E(p.name)}</div>`;
-  if(p.population)h+=`<div style="font-size:28px;font-weight:800;color:#52b788;letter-spacing:-1px;margin-bottom:2px">${Number(p.population).toLocaleString()}</div><div style="font-size:11px;color:rgba(255,255,255,.25)">population (2024 Census)</div>`;
-  h+=`</div>`;
-
-  if(p.description)
-    h+=`<div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:16px;padding:14px 16px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid rgba(255,255,255,.05)">${E(p.description)}</div>`;
-
-  h+=`<div class="dtl"><div class="dtl-h">Details</div>`;
-  const fields=[
-    ['Island Group',p.island_group?.replace(/^\w/,c=>c.toUpperCase())],
-    ['Urban / Rural',p.urban_rural==='U'?'Urban':p.urban_rural==='R'?'Rural':null],
-    ['Income Class',p.income_classification],
-    ['City Class',p.city_class],
-    ['Subdivisions',p.children_count>0?p.children_count.toLocaleString():null],
-    ['PSGC Code',p.psgc_code],
-    ['Coordinate',p.coordinate?p.coordinate.latitude.toFixed(4)+', '+p.coordinate.longitude.toFixed(4):null],
-  ];
-  fields.forEach(([k,v])=>{if(v!=null)h+=`<div class="dtl-r"><span class="k">${k}</span><span class="v">${v}</span></div>`});
-  h+='</div>';
-
-  if(p.sub_municipalities?.length){
-    h+=`<div class="dtl"><div class="dtl-h">Districts (${p.sub_municipalities.length})</div>`;
-    p.sub_municipalities.forEach(sm=>{
-      h+=`<div class="card" onclick="detail('${sm.psgc_code}')"><div class="nm">${E(sm.name)}<span style="margin-left:auto;font-size:11px;color:rgba(255,255,255,.2);font-family:'JetBrains Mono',monospace">${sm.barangay_count}</span></div></div>`;
-    });
-    h+='</div>';
+  // name + population hero
+  h+=`<div class="place-name">${E(p.name)}</div>`;
+  if(p.population){
+    h+=`<div class="place-pop">${Number(p.population).toLocaleString()}</div>`;
+    h+=`<div class="place-pop-label">population</div>`;
   }
 
-  document.getElementById('p-results').innerHTML=h;
-  if(p.coordinate){pin(p.coordinate.latitude,p.coordinate.longitude,p.name,'#52b788',10).openPopup();M.flyTo([p.coordinate.latitude,p.coordinate.longitude],p.level==='barangay'?15:p.level==='city'?13:p.level==='province'?10:8,{duration:1.2})}
+  // description
+  if(p.description)h+=`<div class="desc">${E(p.description)}</div>`;
+
+  // stat grid
+  const stats=[];
+  if(p.island_group)stats.push([p.island_group.charAt(0).toUpperCase()+p.island_group.slice(1),'Island Group']);
+  if(p.urban_rural)stats.push([p.urban_rural==='U'?'Urban':'Rural','Classification']);
+  if(p.children_count>0)stats.push([p.children_count.toLocaleString(),'Subdivisions']);
+  if(p.income_classification)stats.push([p.income_classification,'Income Class']);
+  if(stats.length){h+=`<div class="grid">`;stats.forEach(([v,l])=>{h+=`<div class="g"><div class="gv">${v}</div><div class="gl">${l}</div></div>`});h+=`</div>`}
+
+  // detail rows
+  h+=`<div class="dtl"><div class="dtl-h">Details</div>`;
+  if(p.city_class)h+=`<div class="dtl-r"><span class="k">City Class</span><span class="v">${p.city_class}</span></div>`;
+  h+=`<div class="dtl-r"><span class="k">PSGC</span><span class="v">${p.psgc_code}</span></div>`;
+  if(p.coordinate)h+=`<div class="dtl-r"><span class="k">Coordinate</span><span class="v">${p.coordinate.latitude.toFixed(4)}, ${p.coordinate.longitude.toFixed(4)}</span></div>`;
+  h+=`</div>`;
+
+  // sub-municipalities
+  if(p.sub_municipalities?.length){
+    h+=`<div class="dtl"><div class="dtl-h">Districts</div>`;
+    p.sub_municipalities.forEach(sm=>{
+      h+=`<div class="card" onclick="showProfile('${sm.psgc_code}')"><div class="nm">${E(sm.name)}<span class="pop">${sm.barangay_count} bgys</span></div></div>`;
+    });
+    h+=`</div>`;
+  }
+
+  h+=`</div>`;
+  document.getElementById('out').innerHTML=h;
+
+  // fly to
+  if(p.coordinate){
+    const z=p.level==='barangay'?15:p.level==='city'?13:p.level==='province'?10:8;
+    M.flyTo([p.coordinate.latitude,p.coordinate.longitude],z,{duration:1});
+  }
 }
 
 function goBack(){
-  detailHistory.pop();
-  if(detailHistory.length>0)detail(detailHistory.pop());
-  else if(lastQuery)doSearch(lastQuery);
-  else document.getElementById('p-results').innerHTML='<div class="empty"><div class="empty-big">\ud83c\udfd5\ufe0f</div>7,641 islands. 18 regions.<br>112 million people call this home.</div>';
+  hist.pop();
+  if(hist.length>0)showProfile(hist.pop());
+  else if(lastQuery){renderResults();const bds=[];lastResults.forEach(d=>{if(d.latitude)bds.push([d.latitude,d.longitude])});if(bds.length>1)M.fitBounds(bds,{padding:[30,30],maxZoom:12})}
+  else document.getElementById('out').innerHTML=`<div class="welcome"><div class="flag">🇵🇭</div><h2>Explore the Philippines</h2><p>Type any place to begin.</p></div>`;
 }
-
-async function onRegion(){const code=document.getElementById('br-reg').value;const p=document.getElementById('br-prov'),c=document.getElementById('br-city'),b=document.getElementById('br-bgy');c.innerHTML='<option>Pick a city...</option>';b.innerHTML='<option>Pick a barangay...</option>';c.disabled=true;b.disabled=true;document.getElementById('browse-detail').innerHTML='';if(!code){p.disabled=true;p.innerHTML='<option>Pick a province...</option>';return}p.disabled=false;p.innerHTML='<option>Loading...</option>';const rr=await fetch(`${A}/api/get?q=${code}`);const dd=await rr.json();if(dd.ok&&dd.place.coordinate)M.flyTo([dd.place.coordinate.latitude,dd.place.coordinate.longitude],8,{duration:1});const r3=await fetch(`${A}/api/children?code=${code}&level=province`);const provs=await r3.json();if(!provs.length){p.innerHTML='<option>(cities directly)</option>';p.disabled=true;c.disabled=false;c.innerHTML='<option>Loading...</option>';const r4=await fetch(`${A}/api/children?code=${code}&level=city`);const cities=await r4.json();c.innerHTML='<option>Pick a city...</option>';cities.sort((a,b)=>a.name.localeCompare(b.name));cities.forEach(x=>{const o=document.createElement('option');o.value=x.psgc_code;o.textContent=x.name+(x.population?` (${x.population.toLocaleString()})`:``);c.appendChild(o)})}else{p.innerHTML='<option>Pick a province...</option>';provs.sort((a,b)=>a.name.localeCompare(b.name));provs.forEach(x=>{const o=document.createElement('option');o.value=x.psgc_code;o.textContent=x.name;p.appendChild(o)})}}
-async function onProvince(){const code=document.getElementById('br-prov').value;const c=document.getElementById('br-city'),b=document.getElementById('br-bgy');b.innerHTML='<option>Pick a barangay...</option>';b.disabled=true;c.disabled=false;c.innerHTML='<option>Loading...</option>';document.getElementById('browse-detail').innerHTML='';if(!code){c.disabled=true;c.innerHTML='<option>Pick a city...</option>';return}const r=await fetch(`${A}/api/children?code=${code}&level=city`);const cities=await r.json();c.innerHTML='<option>Pick a city...</option>';cities.sort((a,b)=>a.name.localeCompare(b.name));cities.forEach(x=>{const o=document.createElement('option');o.value=x.psgc_code;o.textContent=x.name+(x.population?` (${x.population.toLocaleString()})`:``);c.appendChild(o)})}
-async function onCity(){const code=document.getElementById('br-city').value;const b=document.getElementById('br-bgy');b.disabled=false;b.innerHTML='<option>Loading...</option>';document.getElementById('browse-detail').innerHTML='';if(!code){b.disabled=true;b.innerHTML='<option>Pick a barangay...</option>';return}const r=await fetch(`${A}/api/children?code=${code}&level=barangay`);const bgys=await r.json();b.innerHTML='<option>Pick a barangay...</option>';bgys.sort((a,bb)=>a.name.localeCompare(bb.name));bgys.forEach(x=>{const o=document.createElement('option');o.value=x.psgc_code;o.textContent=x.name+(x.population?` (${x.population.toLocaleString()})`:``);b.appendChild(o)});const r2=await fetch(`${A}/api/get?q=${code}`);const d=await r2.json();if(d.ok&&d.place.coordinate){cl();pin(d.place.coordinate.latitude,d.place.coordinate.longitude,d.place.name,'#fbbf24',8);M.flyTo([d.place.coordinate.latitude,d.place.coordinate.longitude],12,{duration:1})}}
-async function onBarangay(){const code=document.getElementById('br-bgy').value;if(!code)return;const r=await fetch(`${A}/api/get?q=${code}`);const d=await r.json();if(!d.ok)return;const p=d.place;cl();if(p.coordinate){pin(p.coordinate.latitude,p.coordinate.longitude,p.name,'#fb7185',9).openPopup();M.flyTo([p.coordinate.latitude,p.coordinate.longitude],14,{duration:1})}let h=`<div class="dtl"><div class="dtl-h">${E(p.name)}</div>`;[['Population',p.population?.toLocaleString()],['Urban / Rural',p.urban_rural==='U'?'Urban':p.urban_rural==='R'?'Rural':null],['PSGC',p.psgc_code]].forEach(([k,v])=>{if(v!=null)h+=`<div class="dtl-r"><span class="k">${k}</span><span class="v">${v}</span></div>`});h+='</div>';document.getElementById('browse-detail').innerHTML=h}
-async function doReverse(){const lat=+document.getElementById('tl-lat').value,lng=+document.getElementById('tl-lng').value;cl();pin(lat,lng,'\ud83d\udccd','#fbbf24',9);const r=await fetch(`${A}/api/reverse?lat=${lat}&lng=${lng}`);const d=await r.json();let h=`<div class="dtl"><div class="dtl-h">${E(d.barangay)}</div>`;[['City',d.city],['Province',d.province],['Region',d.region],['Distance',d.distance_km+' km']].forEach(([k,v])=>{if(v)h+=`<div class="dtl-r"><span class="k">${k}</span><span class="v">${E(String(v))}</span></div>`});h+='</div>';document.getElementById('rev-out').innerHTML=h;if(d.latitude)pin(d.latitude,d.longitude,d.barangay,'#52b788',7);M.flyTo([lat,lng],13,{duration:1})}
-async function doDist(){const a=document.getElementById('tl-da').value,b=document.getElementById('tl-db').value;const r=await fetch(`${A}/api/distance?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`);const d=await r.json();if(!d.ok){document.getElementById('dist-out').innerHTML=`<div style="color:#fb7185;font-size:13px;padding:8px">${E(d.error)}</div>`;return}cl();document.getElementById('dist-out').innerHTML=`<div class="dist-num">${d.distance_km.toFixed(1)} km</div><div class="dist-sub">${E(d.a)} \u2192 ${E(d.b)}</div><div class="note">straight-line</div>`;if(d.a_coord&&d.b_coord){pin(d.a_coord.latitude,d.a_coord.longitude,d.a,'#52b788',8);pin(d.b_coord.latitude,d.b_coord.longitude,d.b,'#fb7185',8);const l=L.polyline([[d.a_coord.latitude,d.a_coord.longitude],[d.b_coord.latitude,d.b_coord.longitude]],{color:'#52b788',weight:2,dashArray:'8 5',opacity:.4}).addTo(M);ln.push(l);M.flyToBounds(l.getBounds(),{padding:[60,60],duration:1})}}
-async function doAddr(){const q=document.getElementById('tl-addr').value;const r=await fetch(`${A}/api/parse?q=${encodeURIComponent(q)}`);const d=await r.json();let h='<div class="dtl"><div class="dtl-h">Parsed</div>';[['Street',d.street],['Barangay',d.barangay],['City',d.city],['Province',d.province],['Region',d.region],['ZIP',d.zip_code]].forEach(([k,v])=>{if(v)h+=`<div class="dtl-r"><span class="k">${k}</span><span class="v">${E(v)}</span></div>`});h+='</div>';if(d.confidence>0){const p=Math.round(d.confidence*100);h+=`<div style="font-size:11px;color:rgba(255,255,255,.2);margin-top:4px;text-align:center">Confidence: ${p}%</div><div class="bar-bg"><div class="bar-fg" style="width:${p}%;background:${p>80?'#52b788':p>50?'#fbbf24':'#fb7185'}"></div></div>`}document.getElementById('addr-out').innerHTML=h}
 </script>
 </body>
 </html>
