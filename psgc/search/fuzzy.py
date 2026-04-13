@@ -18,7 +18,7 @@ MatchHook = Literal["barangay", "city", "province", "region"]
 
 _PHONETIC_RULES: list[tuple[str, str]] = [
     ("ph", "f"),
-    ("ñ", "ny"),
+    ("\u00f1", "ny"),
     ("ll", "ly"),
     ("gui", "gi"),
     ("gue", "ge"),
