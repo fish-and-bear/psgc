@@ -10,8 +10,6 @@ import pytest
 from click.testing import CliRunner
 
 
-# ===== cache.py (was 0%) =====
-
 class TestCache:
     def test_cache_info_empty(self):
         from psgc.cache import cache_info
@@ -60,8 +58,6 @@ class TestCache:
         clear_cache()
 
 
-# ===== geo/neighbors.py (was 0%) =====
-
 class TestNeighborsModule:
     def test_get_neighbors_returns_list(self):
         from psgc.geo.neighbors import get_neighbors
@@ -82,8 +78,6 @@ class TestNeighborsModule:
         assert are_neighbors("1339501004", "1339501004") is False
 
 
-# ===== _lazy.py (missing error path) =====
-
 class TestLazyImport:
     def test_import_existing_module(self):
         from psgc._lazy import lazy_import
@@ -102,8 +96,6 @@ class TestLazyImport:
         except ImportError as e:
             assert "geo" in str(e)
 
-
-# ===== CLI commands not yet covered =====
 
 class TestCLIUncovered:
     def setup_method(self):
@@ -193,8 +185,6 @@ class TestCLIUncovered:
         assert result.exit_code == 0
 
 
-# ===== Export gaps =====
-
 class TestExportGaps:
     def test_geojson_province_filter(self):
         from psgc.export.geojson import to_geojson
@@ -241,8 +231,6 @@ class TestExportGaps:
             data = json.loads(path.read_text())
             assert data["type"] == "FeatureCollection"
 
-
-# ===== Models coverage gaps =====
 
 class TestModelGaps:
     def test_extended_find_not_found(self):
@@ -334,8 +322,6 @@ class TestModelGaps:
             assert len(r.region_prefix) == 2
 
 
-# ===== Search index coverage =====
-
 class TestSearchIndexGaps:
     def test_trigram_index_build_from_store(self):
         from psgc.search.index import TrigramIndex
@@ -359,8 +345,6 @@ class TestSearchIndexGaps:
         assert len(results) == 0
 
 
-# ===== Reverse geocode gaps =====
-
 class TestReverseGeocodeGaps:
     def test_reverse_without_boundaries(self):
         from psgc.geo.reverse import reverse_geocode
@@ -382,10 +366,8 @@ class TestReverseGeocodeGaps:
     def test_reverse_remote_location(self):
         from psgc.geo.reverse import reverse_geocode
         result = reverse_geocode(20.0, 122.0)
-        assert result.barangay  # nearest centroid fallback
+        assert result.barangay
 
-
-# ===== Address parser gaps =====
 
 class TestAddressParserGaps:
     def test_parse_with_province(self):
@@ -401,7 +383,7 @@ class TestAddressParserGaps:
     def test_invalid_zip_ignored(self):
         from psgc.address.parser import parse_address
         result = parse_address("Address 0001")
-        assert result.zip_code is None  # 0001 < 400, should be ignored
+        assert result.zip_code is None
 
     def test_normalizer_expand_multiple(self):
         from psgc.address.normalizer import expand_abbreviations
@@ -410,8 +392,6 @@ class TestAddressParserGaps:
         assert "street" in result
         assert "corner" in result
 
-
-# ===== Config gaps =====
 
 class TestConfig:
     def test_config_data_dir(self):
