@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: psgc-explorer
+    runtime: python
+    buildCommand: pip install -e ".[geo]"
+    startCommand: python demo/app.py 10000
+    envVars:
+      - key: PORT
+        value: "10000"
