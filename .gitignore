@@ -13,3 +13,5 @@ _build/
 *.whl
 *.tar.gz
 .DS_Store
+data/
+.env

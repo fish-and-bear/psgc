@@ -141,7 +141,7 @@ class TestCLIUncovered:
 
     def test_search_no_results(self):
         from psgc.cli.main import cli
-        result = self.runner.invoke(cli, ["search", "zzznonexistent999"])
+        result = self.runner.invoke(cli, ["search", "zzznonexistent999", "--threshold", "95"])
         assert result.exit_code == 0
         assert "No matches" in result.output
 

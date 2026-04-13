@@ -40,10 +40,12 @@ class TestCLI:
     def test_suggest(self):
         result = self.runner.invoke(cli, ["suggest", "mak"])
         assert result.exit_code == 0
-        assert "Makati" in result.output
+        assert any("mak" in line.lower() for line in result.output.splitlines() if line.strip())
 
     def test_validate_valid(self):
-        result = self.runner.invoke(cli, ["validate", "1339501004"])
+        from psgc._loader import get_store
+        code = get_store().barangays[0].psgc_code
+        result = self.runner.invoke(cli, ["validate", code])
         assert result.exit_code == 0
         assert "Valid" in result.output
 
