@@ -119,7 +119,7 @@ class TestSearchEdgeCases:
 
     def test_unicode_query(self):
         from psgc.search.fuzzy import search
-        results = search("Niña", threshold=30.0)
+        results = search("Ni\u00f1a", threshold=30.0)
         assert isinstance(results, list)
 
     def test_search_n_zero(self):
