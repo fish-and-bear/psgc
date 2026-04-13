@@ -48,10 +48,10 @@ all = ["psgc[cli,yaml,geo]"]
 psgc = "psgc.cli.main:cli"
 
 [project.urls]
-Homepage = "https://github.com/psgc-ph/psgc"
-Documentation = "https://psgc-ph.github.io/psgc/"
-Repository = "https://github.com/psgc-ph/psgc"
-"Bug Tracker" = "https://github.com/psgc-ph/psgc/issues"
+Homepage = "https://github.com/fish-and-bear/psgc"
+Demo = "https://psgc-explorer-production.up.railway.app/"
+Repository = "https://github.com/fish-and-bear/psgc"
+"Bug Tracker" = "https://github.com/fish-and-bear/psgc/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["psgc"]
