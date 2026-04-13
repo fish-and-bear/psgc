@@ -94,7 +94,7 @@ def _compute_area_km2(geometry) -> float:
         projected = transform(project, geometry)
         return projected.area / 1_000_000
     except (ImportError, Exception):
-        return geometry.area * 12321  # rough deg2 to km2 at PH latitude
+        return geometry.area * 12321
 
 
 if __name__ == "__main__":

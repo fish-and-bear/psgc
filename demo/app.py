@@ -75,8 +75,6 @@ class DemoHandler(http.server.BaseHTTPRequestHandler):
         hooks = params.get("hooks", [""])[0].split(",") if params.get("hooks", [""])[0] else None
         results = psgc.search(q, n=n, threshold=threshold, phonetic=phonetic, match_hooks=hooks)
 
-        # Boost cities/provinces that match "City of <query>" to the top,
-        # same logic as psgc.get() but for the result list.
         q_lower = q.lower().strip()
         def _boost(r):
             name_lower = r.place.name.lower()
@@ -163,12 +161,10 @@ class DemoHandler(http.server.BaseHTTPRequestHandler):
 
         if level == "province":
             children = store.provinces_by_region(code)
-            # Filter out synthetic provinces (same code as region)
             children = [c for c in children if c.psgc_code != code]
         elif level == "city":
             children = store.cities_by_province(code)
             if not children:
-                # Province might be synthetic (NCR) -- get cities directly
                 children = [c for c in store.cities
                             if c.region_code == code and c.geographic_level != "SubMun"]
         elif level == "barangay":
@@ -194,7 +190,6 @@ class DemoHandler(http.server.BaseHTTPRequestHandler):
         store = get_store()
 
         try:
-            # Try each level
             for getter, level in [(store.get_barangay, "barangay"), (store.get_city, "city"),
                                   (store.get_region, "region"), (store.get_province, "province")]:
                 try:
@@ -216,7 +211,6 @@ class DemoHandler(http.server.BaseHTTPRequestHandler):
             "coordinate": place.coordinate.to_dict() if place.coordinate else None,
         }
 
-        # Build context sentences
         sentences = []
 
         if level == "barangay":

@@ -55,8 +55,8 @@ def _parse_sql(path: Path) -> dict:
             if len(fields) >= 3:
                 zip_code = fields[0].strip().strip("'\"")
                 area = fields[1].strip().strip("'\"")
-                city = fields[2].strip().strip("'\"") if len(fields) > 2 else ""
-                province = fields[3].strip().strip("'\"") if len(fields) > 3 else ""
+                city = fields[2].strip().strip("'\"")
+                province = fields[3].strip().strip("'\"")
 
                 if zip_code.isdigit() and len(zip_code) == 4:
                     entries[zip_code] = {

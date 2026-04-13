@@ -149,7 +149,7 @@ body{font-family:'Plus Jakarta Sans',system-ui,sans-serif;background:#0a0f0d;col
   </div>
   <div class="p-body">
     <div class="pane on" id="p-results">
-      <div class="empty"><div class="empty-big">🏝️</div>7,641 islands. 18 regions.<br>112 million people call this home.<br><br><span style="color:rgba(255,255,255,.35)">Start typing to discover.</span></div>
+      <div class="empty"><div class="empty-big">🏕️</div>7,641 islands. 18 regions.<br>112 million people call this home.<br><br><span style="color:rgba(255,255,255,.35)">Start typing to discover.</span></div>
     </div>
     <div class="pane" id="p-browse">
       <div class="fg"><label>Region</label><select id="br-reg"><option value="">Pick a region...</option></select></div>
@@ -193,9 +193,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   M.on('click',e=>{document.getElementById('tl-lat').value=e.latlng.lat.toFixed(4);document.getElementById('tl-lng').value=e.latlng.lng.toFixed(4);go('tools');doReverse()});
 
   fetch(`${A}/api/stats`).then(r=>r.json()).then(d=>{
-    document.getElementById('ver').textContent=`v${d.version} · ${d.barangays.toLocaleString()} barangays`;
-    document.getElementById('about-sub').textContent=`v${d.version} · PSGC ${d.data_date}`;
-    document.getElementById('stat-row').innerHTML=[['🏘️',d.barangays,'Barangays'],['🏙️',d.cities,'Cities'],['🗺️',d.provinces,'Provinces'],['🌏',d.regions,'Regions']].map(([i,n,l])=>`<div class="stat"><div class="n">${n.toLocaleString()}</div><div class="l">${l}</div></div>`).join('');
+    document.getElementById('ver').textContent=`v${d.version} \u00b7 ${d.barangays.toLocaleString()} barangays`;
+    document.getElementById('about-sub').textContent=`v${d.version} \u00b7 PSGC ${d.data_date}`;
+    document.getElementById('stat-row').innerHTML=['\ud83c\udfe8',d.barangays,'Barangays','\ud83c\udfd9\ufe0f',d.cities,'Cities','\ud83d\uddfa\ufe0f',d.provinces,'Provinces','\ud83c\udf0f',d.regions,'Regions'].reduce((a,v,i)=>i%3===0?[...a,[v]]:(a[a.length-1].push(v),a),[]).map(([i,n,l])=>`<div class="stat"><div class="n">${n.toLocaleString()}</div><div class="l">${l}</div></div>`).join('');
     document.getElementById('code-block').innerHTML=`<em>import</em> psgc\n\nplace = psgc.get(<em>"Taguig"</em>)\nplace.population      <span class="cm"># 1,308,085</span>\nplace.children        <span class="cm"># 38 barangays</span>\n\nmanila = psgc.get(<em>"Manila"</em>)\nmanila.sub_municipalities  <span class="cm"># Tondo, Sampaloc...</span>\nmanila.children            <span class="cm"># 897 barangays</span>\n\npsgc.search(<em>"Cebu"</em>, n=5)\npsgc.nearest(14.5, 120.9)\npsgc.distance(<em>"Manila"</em>, <em>"Cebu"</em>)`;
   });
 
@@ -220,7 +220,7 @@ function fmtPop(n){if(!n)return'';if(n>=1e6)return(n/1e6).toFixed(1)+'M';if(n>=1
 
 async function doSearch(q){
   lastQuery=q;
-  if(!q||q.length<2){document.getElementById('p-results').innerHTML='<div class="empty"><div class="empty-big">🏝️</div>7,641 islands. 18 regions.<br>112 million people call this home.<br><br><span style="color:rgba(255,255,255,.35)">Start typing to discover.</span></div>';lastResults=[];return}
+  if(!q||q.length<2){document.getElementById('p-results').innerHTML='<div class="empty"><div class="empty-big">\ud83c\udfd5\ufe0f</div>7,641 islands. 18 regions.<br>112 million people call this home.<br><br><span style="color:rgba(255,255,255,.35)">Start typing to discover.</span></div>';lastResults=[];return}
   go('results');
   document.getElementById('p-results').innerHTML='<div class="empty" style="padding:24px"><span style="opacity:.3">Searching...</span></div>';
   const r=await fetch(`${A}/api/search?q=${encodeURIComponent(q)}&n=12&threshold=55`);const data=await r.json();cl();lastResults=data;
@@ -249,37 +249,30 @@ async function detail(code){
   go('results');
   document.getElementById('p-results').innerHTML='<div class="empty" style="padding:24px"><span style="opacity:.3">Loading...</span></div>';
   
-  // Try profile first for rich context
   const rp=await fetch(`${A}/api/profile?code=${code}`);const prof=await rp.json();
   
   if(!prof.ok){
-    // Fallback to get() which handles ambiguity
     const r=await fetch(`${A}/api/get?q=${code}`);const d=await r.json();
-    if(!d.ok){if(d.error==='ambiguous'){let h='<div class="dtl"><div class="dtl-h">Which one?</div>';d.matches.forEach(m=>{h+=`<div class="card" onclick="detail('${m.psgc_code}')"><div class="nm">${E(m.name)}</div><div class="sub">${m.parent||''} · ${m.psgc_code}</div></div>`});h+='</div>';document.getElementById('p-results').innerHTML=h}}
+    if(!d.ok){if(d.error==='ambiguous'){let h='<div class="dtl"><div class="dtl-h">Which one?</div>';d.matches.forEach(m=>{h+=`<div class="card" onclick="detail('${m.psgc_code}')"><div class="nm">${E(m.name)}</div><div class="sub">${m.parent||''} \u00b7 ${m.psgc_code}</div></div>`});h+='</div>';document.getElementById('p-results').innerHTML=h}}
     return;
   }
 
   detailHistory.push(code);
   const p=prof;cl();let h='';
 
-  // Back button
   if(detailHistory.length>1||lastQuery)
-    h+=`<div class="card" onclick="goBack()" style="margin-bottom:10px;padding:8px 14px;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600"><span style="opacity:.4">←</span> Back</div>`;
+    h+=`<div class="card" onclick="goBack()" style="margin-bottom:10px;padding:8px 14px;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600"><span style="opacity:.4">\u2190</span> Back</div>`;
 
-  // Breadcrumb
-  if(p.breadcrumb)h+=`<div class="crumb">${p.breadcrumb.map(b=>`<b>${E(b)}</b>`).join(' → ')}</div>`;
+  if(p.breadcrumb)h+=`<div class="crumb">${p.breadcrumb.map(b=>`<b>${E(b)}</b>`).join(' \u2192 ')}</div>`;
 
-  // Hero: name + population as big number
   h+=`<div style="margin-bottom:14px">`;
   h+=`<div style="font-size:20px;font-weight:800;color:#e8e4df;margin-bottom:4px">${E(p.name)}</div>`;
   if(p.population)h+=`<div style="font-size:28px;font-weight:800;color:#52b788;letter-spacing:-1px;margin-bottom:2px">${Number(p.population).toLocaleString()}</div><div style="font-size:11px;color:rgba(255,255,255,.25)">population (2024 Census)</div>`;
   h+=`</div>`;
 
-  // Description paragraph
   if(p.description)
     h+=`<div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:16px;padding:14px 16px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid rgba(255,255,255,.05)">${E(p.description)}</div>`;
 
-  // Details table
   h+=`<div class="dtl"><div class="dtl-h">Details</div>`;
   const fields=[
     ['Island Group',p.island_group?.replace(/^\w/,c=>c.toUpperCase())],
@@ -293,7 +286,6 @@ async function detail(code){
   fields.forEach(([k,v])=>{if(v!=null)h+=`<div class="dtl-r"><span class="k">${k}</span><span class="v">${v}</span></div>`});
   h+='</div>';
 
-  // Sub-municipalities
   if(p.sub_municipalities?.length){
     h+=`<div class="dtl"><div class="dtl-h">Districts (${p.sub_municipalities.length})</div>`;
     p.sub_municipalities.forEach(sm=>{
@@ -310,15 +302,15 @@ function goBack(){
   detailHistory.pop();
   if(detailHistory.length>0)detail(detailHistory.pop());
   else if(lastQuery)doSearch(lastQuery);
-  else document.getElementById('p-results').innerHTML='<div class="empty"><div class="empty-big">🏝️</div>7,641 islands. 18 regions.<br>112 million people call this home.</div>';
+  else document.getElementById('p-results').innerHTML='<div class="empty"><div class="empty-big">\ud83c\udfd5\ufe0f</div>7,641 islands. 18 regions.<br>112 million people call this home.</div>';
 }
 
 async function onRegion(){const code=document.getElementById('br-reg').value;const p=document.getElementById('br-prov'),c=document.getElementById('br-city'),b=document.getElementById('br-bgy');c.innerHTML='<option>Pick a city...</option>';b.innerHTML='<option>Pick a barangay...</option>';c.disabled=true;b.disabled=true;document.getElementById('browse-detail').innerHTML='';if(!code){p.disabled=true;p.innerHTML='<option>Pick a province...</option>';return}p.disabled=false;p.innerHTML='<option>Loading...</option>';const rr=await fetch(`${A}/api/get?q=${code}`);const dd=await rr.json();if(dd.ok&&dd.place.coordinate)M.flyTo([dd.place.coordinate.latitude,dd.place.coordinate.longitude],8,{duration:1});const r3=await fetch(`${A}/api/children?code=${code}&level=province`);const provs=await r3.json();if(!provs.length){p.innerHTML='<option>(cities directly)</option>';p.disabled=true;c.disabled=false;c.innerHTML='<option>Loading...</option>';const r4=await fetch(`${A}/api/children?code=${code}&level=city`);const cities=await r4.json();c.innerHTML='<option>Pick a city...</option>';cities.sort((a,b)=>a.name.localeCompare(b.name));cities.forEach(x=>{const o=document.createElement('option');o.value=x.psgc_code;o.textContent=x.name+(x.population?` (${x.population.toLocaleString()})`:``);c.appendChild(o)})}else{p.innerHTML='<option>Pick a province...</option>';provs.sort((a,b)=>a.name.localeCompare(b.name));provs.forEach(x=>{const o=document.createElement('option');o.value=x.psgc_code;o.textContent=x.name;p.appendChild(o)})}}
 async function onProvince(){const code=document.getElementById('br-prov').value;const c=document.getElementById('br-city'),b=document.getElementById('br-bgy');b.innerHTML='<option>Pick a barangay...</option>';b.disabled=true;c.disabled=false;c.innerHTML='<option>Loading...</option>';document.getElementById('browse-detail').innerHTML='';if(!code){c.disabled=true;c.innerHTML='<option>Pick a city...</option>';return}const r=await fetch(`${A}/api/children?code=${code}&level=city`);const cities=await r.json();c.innerHTML='<option>Pick a city...</option>';cities.sort((a,b)=>a.name.localeCompare(b.name));cities.forEach(x=>{const o=document.createElement('option');o.value=x.psgc_code;o.textContent=x.name+(x.population?` (${x.population.toLocaleString()})`:``);c.appendChild(o)})}
 async function onCity(){const code=document.getElementById('br-city').value;const b=document.getElementById('br-bgy');b.disabled=false;b.innerHTML='<option>Loading...</option>';document.getElementById('browse-detail').innerHTML='';if(!code){b.disabled=true;b.innerHTML='<option>Pick a barangay...</option>';return}const r=await fetch(`${A}/api/children?code=${code}&level=barangay`);const bgys=await r.json();b.innerHTML='<option>Pick a barangay...</option>';bgys.sort((a,bb)=>a.name.localeCompare(bb.name));bgys.forEach(x=>{const o=document.createElement('option');o.value=x.psgc_code;o.textContent=x.name+(x.population?` (${x.population.toLocaleString()})`:``);b.appendChild(o)});const r2=await fetch(`${A}/api/get?q=${code}`);const d=await r2.json();if(d.ok&&d.place.coordinate){cl();pin(d.place.coordinate.latitude,d.place.coordinate.longitude,d.place.name,'#fbbf24',8);M.flyTo([d.place.coordinate.latitude,d.place.coordinate.longitude],12,{duration:1})}}
 async function onBarangay(){const code=document.getElementById('br-bgy').value;if(!code)return;const r=await fetch(`${A}/api/get?q=${code}`);const d=await r.json();if(!d.ok)return;const p=d.place;cl();if(p.coordinate){pin(p.coordinate.latitude,p.coordinate.longitude,p.name,'#fb7185',9).openPopup();M.flyTo([p.coordinate.latitude,p.coordinate.longitude],14,{duration:1})}let h=`<div class="dtl"><div class="dtl-h">${E(p.name)}</div>`;[['Population',p.population?.toLocaleString()],['Urban / Rural',p.urban_rural==='U'?'Urban':p.urban_rural==='R'?'Rural':null],['PSGC',p.psgc_code]].forEach(([k,v])=>{if(v!=null)h+=`<div class="dtl-r"><span class="k">${k}</span><span class="v">${v}</span></div>`});h+='</div>';document.getElementById('browse-detail').innerHTML=h}
-async function doReverse(){const lat=+document.getElementById('tl-lat').value,lng=+document.getElementById('tl-lng').value;cl();pin(lat,lng,'📍','#fbbf24',9);const r=await fetch(`${A}/api/reverse?lat=${lat}&lng=${lng}`);const d=await r.json();let h=`<div class="dtl"><div class="dtl-h">${E(d.barangay)}</div>`;[['City',d.city],['Province',d.province],['Region',d.region],['Distance',d.distance_km+' km']].forEach(([k,v])=>{if(v)h+=`<div class="dtl-r"><span class="k">${k}</span><span class="v">${E(String(v))}</span></div>`});h+='</div>';document.getElementById('rev-out').innerHTML=h;if(d.latitude)pin(d.latitude,d.longitude,d.barangay,'#52b788',7);M.flyTo([lat,lng],13,{duration:1})}
-async function doDist(){const a=document.getElementById('tl-da').value,b=document.getElementById('tl-db').value;const r=await fetch(`${A}/api/distance?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`);const d=await r.json();if(!d.ok){document.getElementById('dist-out').innerHTML=`<div style="color:#fb7185;font-size:13px;padding:8px">${E(d.error)}</div>`;return}cl();document.getElementById('dist-out').innerHTML=`<div class="dist-num">${d.distance_km.toFixed(1)} km</div><div class="dist-sub">${E(d.a)} → ${E(d.b)}</div><div class="note">straight-line</div>`;if(d.a_coord&&d.b_coord){pin(d.a_coord.latitude,d.a_coord.longitude,d.a,'#52b788',8);pin(d.b_coord.latitude,d.b_coord.longitude,d.b,'#fb7185',8);const l=L.polyline([[d.a_coord.latitude,d.a_coord.longitude],[d.b_coord.latitude,d.b_coord.longitude]],{color:'#52b788',weight:2,dashArray:'8 5',opacity:.4}).addTo(M);ln.push(l);M.flyToBounds(l.getBounds(),{padding:[60,60],duration:1})}}
+async function doReverse(){const lat=+document.getElementById('tl-lat').value,lng=+document.getElementById('tl-lng').value;cl();pin(lat,lng,'\ud83d\udccd','#fbbf24',9);const r=await fetch(`${A}/api/reverse?lat=${lat}&lng=${lng}`);const d=await r.json();let h=`<div class="dtl"><div class="dtl-h">${E(d.barangay)}</div>`;[['City',d.city],['Province',d.province],['Region',d.region],['Distance',d.distance_km+' km']].forEach(([k,v])=>{if(v)h+=`<div class="dtl-r"><span class="k">${k}</span><span class="v">${E(String(v))}</span></div>`});h+='</div>';document.getElementById('rev-out').innerHTML=h;if(d.latitude)pin(d.latitude,d.longitude,d.barangay,'#52b788',7);M.flyTo([lat,lng],13,{duration:1})}
+async function doDist(){const a=document.getElementById('tl-da').value,b=document.getElementById('tl-db').value;const r=await fetch(`${A}/api/distance?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`);const d=await r.json();if(!d.ok){document.getElementById('dist-out').innerHTML=`<div style="color:#fb7185;font-size:13px;padding:8px">${E(d.error)}</div>`;return}cl();document.getElementById('dist-out').innerHTML=`<div class="dist-num">${d.distance_km.toFixed(1)} km</div><div class="dist-sub">${E(d.a)} \u2192 ${E(d.b)}</div><div class="note">straight-line</div>`;if(d.a_coord&&d.b_coord){pin(d.a_coord.latitude,d.a_coord.longitude,d.a,'#52b788',8);pin(d.b_coord.latitude,d.b_coord.longitude,d.b,'#fb7185',8);const l=L.polyline([[d.a_coord.latitude,d.a_coord.longitude],[d.b_coord.latitude,d.b_coord.longitude]],{color:'#52b788',weight:2,dashArray:'8 5',opacity:.4}).addTo(M);ln.push(l);M.flyToBounds(l.getBounds(),{padding:[60,60],duration:1})}}
 async function doAddr(){const q=document.getElementById('tl-addr').value;const r=await fetch(`${A}/api/parse?q=${encodeURIComponent(q)}`);const d=await r.json();let h='<div class="dtl"><div class="dtl-h">Parsed</div>';[['Street',d.street],['Barangay',d.barangay],['City',d.city],['Province',d.province],['Region',d.region],['ZIP',d.zip_code]].forEach(([k,v])=>{if(v)h+=`<div class="dtl-r"><span class="k">${k}</span><span class="v">${E(v)}</span></div>`});h+='</div>';if(d.confidence>0){const p=Math.round(d.confidence*100);h+=`<div style="font-size:11px;color:rgba(255,255,255,.2);margin-top:4px;text-align:center">Confidence: ${p}%</div><div class="bar-bg"><div class="bar-fg" style="width:${p}%;background:${p>80?'#52b788':p>50?'#fbbf24':'#fb7185'}"></div></div>`}document.getElementById('addr-out').innerHTML=h}
 </script>
 </body>
